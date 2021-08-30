@@ -1,3 +1,4 @@
+from core.reports import transaction_report
 from core.serializers import CurrencySerializer
 from django.shortcuts import render
 from .serializers import *
@@ -10,6 +11,9 @@ from rest_framework.permissions import BasePermission, IsAuthenticated
 from .models import *
 from rest_framework.generics import ListAPIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 
 # Create your views here.
 
@@ -41,6 +45,22 @@ class TransactionModelViewSet(ModelViewSet):
             return ReadTransactionSerializer
 
         return WriteTransactionSerializer
+
+
+
+class TransactionReportAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+
+        params_serializer = ReportParamsSerializer(data=request.GET, context={"request":request})
+        params_serializer.is_valid(raise_exception=True)
+        params = params_serializer.save()
+        data = transaction_report(params)
+        serializer = ReportEntrySerializer(instance=data, many=True)
+
+        return Response(data = serializer.data)
+
+
 
     # def perform_create(self, serializer):
     #     serializer.save(user = self.request.user)

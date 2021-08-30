@@ -1,3 +1,5 @@
+from core.reports import ReportParams
+from django.db.models.aggregates import Count
 from rest_framework import fields, serializers
 from .models import *
 from django.contrib.auth.models import User
@@ -44,3 +46,20 @@ class WriteTransactionSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         user = self.context["request"].user
         self.fields["category"].queryset = user.categories.all()
+
+
+class ReportEntrySerializer(serializers.Serializer):
+    category = CategorySerializer()
+    total = serializers.DecimalField(max_digits=15, decimal_places=2)
+    count = serializers.IntegerField()
+    avg = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
+class ReportParamsSerializer(serializers.Serializer):
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    def create(self, validated_data):
+        return ReportParams(**validated_data)
+
